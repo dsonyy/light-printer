@@ -34,17 +34,12 @@ def serial_ports():
             pass
     return result
     
-def print_serial_ports() -> bool:
-    try:
-        ports = serial_ports()
-    except Exception as e:
-        print("ERR! An error occured: ", e)
-        return False
-    
+def print_serial_ports():
+    ports = serial_ports()
+
     print("Available serial ports:")
     for p in ports:
         print(" ", p)
-    return True
 
 def wait_for_signal(s, signal, timeout=10) -> bool:
     print("Waiting for", signal, "signal")
@@ -60,16 +55,19 @@ def wait_for_signal(s, signal, timeout=10) -> bool:
 
 def main():
     # Printing available serial ports
-    if not print_serial_ports():
+    try:
+        print_serial_ports()
+    except Exception as e:
+        print("ERR! An error occured:", e)
         return -1
 
     # Estabilishing connection
     i = input("Which one to connect? ")
     try:
-        s = serial.Serial(i, 115200, timeout=serial_timeout)
+        s = serial.Serial(i, 115200, timeout=SERIAL_TIMEOUT)
         print("Connection estabilished")
-    except:
-        print("ERR! Unable to connect with", i)
+    except Exception as e:
+        print("ERR! An error occured:", e)
         return -1
 
     # Waiting for 'start' signal form printer
@@ -77,24 +75,21 @@ def main():
     if not wait_for_signal(s, signal):
         print("ERR! Signal", signal, "not sent")
         return -1
-    
-    time.sleep(3)
 
     # Sending (or not) header.gcode
-    #try:
-    header = open("header.gcode", "r")
-    for line in header:
-        print("<<<", line)
+    try:
+        header = open("header.gcode", "r")
+        for line in header:
+            print(">>>> Sending", line.strip())
+            s.write(str.encode(line + "\n"))
+            s.flushInput()
+            wait_for_signal(s, "wait")
+    except FileNotFoundError:
+        print("Header not found")
+    except Exception as e:
+        print("ERR! An error occured:", e)
+        return -1
 
-        s.write(str.encode(line))
-        # time.sleep(1)
-        s.flushInput()
-        wait_for_signal(s, "wait")
-        
-        
-
-    #except:
-    #    print("Header not found")
 
     # s.write(str.encode(a))
     
@@ -103,4 +98,4 @@ def main():
 
 
 main()
-input("Program Finished, press any key to continue. ")
+# input("Program Finished, press any key to continue. ")
