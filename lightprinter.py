@@ -154,6 +154,9 @@ def make_image(s):
     
     img.reverse()
     for row in img:
+        if img.index(row) % 2:
+            row.reverse()
+
         for px in row:
             # Turn the light on and set its color
             print("Turn on light --", hex(px[0])[2:].zfill(2) + hex(px[1])[2:].zfill(2) + hex(px[2])[2:].zfill(2))
