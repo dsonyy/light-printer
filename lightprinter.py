@@ -3,10 +3,14 @@ import sys
 import glob
 import serial
 import imageio
+import playsound
 
-SERIAL_TIMEOUT = 1
+SERIAL_TIMEOUT = 0.1
+PLAY_SOUND = False
 
-LIGHT_TIME = 1 # s
+LIGHT_TIME = 3 # s
+Z_SLEEP_PER_MM = 0.19 # s / mm
+X_SLEEP_PER_MM = 0.05 # s / mm
 X_STEP = 10 # mm
 Z_STEP = 10 # mm
 
@@ -90,6 +94,7 @@ def main():
     s = serial.Serial()
     # print_menu(s)
 
+
     # Printing available serial ports
     try:
         print_serial_ports()
@@ -152,37 +157,70 @@ def make_image(s):
             print(hex(px[0])[2:].zfill(2), hex(px[1])[2:].zfill(2), hex(px[2])[2:].zfill(2), end=" ", sep="")
         print("")
     
-    img.reverse()
-    for row in img:
-        if img.index(row) % 2:
-            row.reverse()
+    # Start time measurement
+    start = time.time()
+    print("Time measurement started")
 
-        for px in row:
+    img = img[::-1]
+    for row, index in zip(img, range(len(img))):
+        if index % 2:
+            row = row[::-1]
+
+        for px, x in zip(row, range(len(row))):
+            if index % 2: print(index, len(row) - 1 - x, ":")
+            else: print(index, x, ":")
             # Turn the light on and set its color
+            if PLAY_SOUND:
+                try: playsound.playsound("on.mp3")
+                except: pass
             print("Turn on light --", hex(px[0])[2:].zfill(2) + hex(px[1])[2:].zfill(2) + hex(px[2])[2:].zfill(2))
             pass
 
             # Wait 
             time.sleep(LIGHT_TIME)
 
+
             # Turn off the light
+            if PLAY_SOUND:
+                try: playsound.playsound("off.mp3")
+                except: pass
             print("Turn off light")
             pass
 
             # Move X
-            gcode = "G0 X" + str(X_STEP)
+            if x == len(row) - 1:
+                break
+            gcode = "G0 X"
+            if index % 2: gcode += str(-X_STEP)
+            else: gcode += str(X_STEP)
             print(">>>> Sending line --", gcode)
             s.write(str.encode(gcode + "\n"))
-            s.flushInput()
-            wait_for_signal(s, "wait")
+
+            # Sleeping
+            time.sleep(X_STEP * X_SLEEP_PER_MM)
+            # s.flushInput()
+            # wait_for_signal(s, "wait")
             
         # Move Z
+        if index == len(img) - 1:
+            break
         gcode = "G0 Z" + str(Z_STEP)
         print(">>>> Sending line --", gcode)
         s.write(str.encode(gcode + "\n"))
-        s.flushInput()
-        wait_for_signal(s, "wait")
-        
 
-main()
+        # Sleeping
+        time.sleep(Z_STEP * Z_SLEEP_PER_MM)
+        # s.flushInput()
+        # wait_for_signal(s, "wait")
+
+    end = time.time()
+    print("Operation time:", end - start, "seconds")
+    print("Total pixels:", len(img) * len(img[0]))
+    print("Average time for single pixel:", (end - start) / (len(img) * len(img[0])), "seconds")
+
+
+try:
+    main()
+except KeyboardInterrupt:
+    print("EOF recieved. Program stopped.")
 # input("Program Finished, press any key to continue. ")
