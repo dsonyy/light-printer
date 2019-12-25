@@ -46,9 +46,9 @@ def serial_ports():
 def print_serial_ports():
     ports = serial_ports()
 
-    print("Available serial ports:")
+    print("##    Available serial ports:")
     for p in ports:
-        print(" ", p)
+        print("##      ", p)
 
 def wait_for_signal(s, signal, timeout=10) -> bool:
     print("Waiting for", signal, "signal")
@@ -123,9 +123,38 @@ def modify_constants():
         print("ERR! Invalid input. Value did not changed.")
         return
 
+def configure_com() -> serial.Serial:
+    # Printing available serial ports
+    try:
+        print_serial_ports()
+    except Exception as e:
+        print("ERR! An error occured:", e)
+        return -1
 
+    # Estabilishing connection
+    i = input("##    Port: ")
+    try:
+        s = serial.Serial(i, 115200, timeout=SERIAL_TIMEOUT)
+        print("Connection estabilished")
+    except Exception as e:
+        print("ERR! An error occured:", e)
+        return -1
 
-def menu(s):
+    # Waiting for 'start' signal form printer
+    signal = "wait"
+    if not wait_for_signal(s, signal):
+        print("ERR! Signal", signal, "not sent")
+        return -1
+
+    
+def color_hex(color):
+    c = ""
+    c += color
+
+def main():
+    s = serial.Serial()
+
+    # Welcome screen
     print("##################################################")
     print("##")
     print("##    Type a letter to nagivate:")
@@ -150,7 +179,7 @@ def menu(s):
         if ch in ['d', 'D']:
             pass
         elif ch in ['c', 'C']:
-            pass
+            s = configure_com()
         elif ch in ['m', 'M']:
             modify_constants()
         elif ch in ['g', 'G']:
@@ -161,39 +190,6 @@ def menu(s):
             print("ERR! Unknown command")
             continue
         break
-
-    
-def color_hex(color):
-    c = ""
-    c += color
-
-def main():
-    # Welcome screen
-    s = serial.Serial()
-    menu(s)
-
-
-    # Printing available serial ports
-    try:
-        print_serial_ports()
-    except Exception as e:
-        print("ERR! An error occured:", e)
-        return -1
-
-    # Estabilishing connection
-    i = input("Which one to connect? ")
-    try:
-        s = serial.Serial(i, 115200, timeout=SERIAL_TIMEOUT)
-        print("Connection estabilished")
-    except Exception as e:
-        print("ERR! An error occured:", e)
-        return -1
-
-    # Waiting for 'start' signal form printer
-    signal = "wait"
-    if not wait_for_signal(s, signal):
-        print("ERR! Signal", signal, "not sent")
-        return -1
 
     # Sending (or not) header.gcode
     try:
