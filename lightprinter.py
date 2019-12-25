@@ -1,6 +1,5 @@
 import time
 import sys
-import glob
 import serial
 import imageio
 import playsound
@@ -76,7 +75,7 @@ def modify_constants():
     global X_STEP
     global Z_STEP
 
-    print("##    Enter new constant (empty line to skip):")
+    print("##    Enter new constant:")
 
     print("##      Pixel light time (", LIGHT_TIME, "sec ): ", end="")
     try:
@@ -87,7 +86,7 @@ def modify_constants():
         print("ERR! Invalid input. Value did not changed.")
         return
 
-    print("##      X axis step (", X_STEP, "sec ): ", end="")
+    print("##      X axis step (", X_STEP, "mm ): ", end="")
     try:
         new = float(input())
         if not new >= 0: raise ValueError
@@ -96,7 +95,7 @@ def modify_constants():
         print("ERR! Invalid input. Value did not changed.")
         return
 
-    print("##      Z axis step (", Z_STEP, "sec ): ", end="")
+    print("##      Z axis step (", Z_STEP, "mm ): ", end="")
     try:
         new = float(input())
         if not new >= 0: raise ValueError
@@ -105,7 +104,7 @@ def modify_constants():
         print("ERR! Invalid input. Value did not changed.")
         return
 
-    print("##      X axis sleep per mm (", X_SLEEP_PER_MM, "sec ): ", end="")
+    print("##      X axis sleep per mm (", X_SLEEP_PER_MM, "sec/mm ): ", end="")
     try:
         new = float(input())
         if not new >= 0: raise ValueError
@@ -114,7 +113,7 @@ def modify_constants():
         print("ERR! Invalid input. Value did not changed.")
         return
 
-    print("##      Z axis sleep per mm (", Z_SLEEP_PER_MM, "sec ): ", end="")
+    print("##      Z axis sleep per mm (", Z_SLEEP_PER_MM, "sec/mm ): ", end="")
     try:
         new = float(input())
         if not new >= 0: raise ValueError
@@ -129,7 +128,7 @@ def configure_com() -> serial.Serial:
         print_serial_ports()
     except Exception as e:
         print("ERR! An error occured:", e)
-        return -1
+        return serial.Serial()
 
     # Estabilishing connection
     i = input("##    Port: ")
@@ -138,82 +137,70 @@ def configure_com() -> serial.Serial:
         print("Connection estabilished")
     except Exception as e:
         print("ERR! An error occured:", e)
-        return -1
+        return serial.Serial()
 
     # Waiting for 'start' signal form printer
     signal = "wait"
     if not wait_for_signal(s, signal):
         print("ERR! Signal", signal, "not sent")
-        return -1
+        return serial.Serial()
 
-    
-def color_hex(color):
-    c = ""
-    c += color
+    return s
 
 def main():
     s = serial.Serial()
 
-    # Welcome screen
-    print("##################################################")
-    print("##")
-    print("##    Type a letter to nagivate:")
-    print("##      d - DRAW AN IMAGE")
-    print("##      c - Configure COM connection")
-    print("##      m - Modify constants")
-    print("##      g - Live G-Code session")
-    print("##      h - Get some help about this project")
-    print("##")
-    if s.port: print("##    Port:", s.port)
-    else: print("##    Port:                     Not connected")
-    print("##")
-    print("##    Pixel light time:        ", LIGHT_TIME, "sec")
-    print("##    X axis step:             ", X_STEP, "mm")
-    print("##    Z axis step:             ", Z_STEP, "mm")
-    print("##    X axis sleep per mm:     ", X_SLEEP_PER_MM, "sec/mm")
-    print("##    Z axis sleep per mm:     ", Z_SLEEP_PER_MM, "sec/mm")
-    print("##")
-
     while True:
-        ch = input("> ")
-        if ch in ['d', 'D']:
-            pass
-        elif ch in ['c', 'C']:
-            s = configure_com()
-        elif ch in ['m', 'M']:
-            modify_constants()
-        elif ch in ['g', 'G']:
-            pass
-        elif ch in ['h', 'H']:
-            pass
-        else:
-            print("ERR! Unknown command")
-            continue
-        break
+        print("##################################################")
+        print("##")
+        print("##    Type a letter to nagivate:")
+        print("##      d - DRAW AN IMAGE")
+        print("##      c - Configure COM connection")
+        print("##      m - Modify constants")
+        print("##      g - Live G-Code session")
+        print("##      h - Get some help about this project")
+        print("##")
+        if s.port: print("##    Port:", s.port)
+        else: print("##    Port:                     Not connected")
+        print("##")
+        print("##    Pixel light time:        ", LIGHT_TIME, "sec")
+        print("##    X axis step:             ", X_STEP, "mm")
+        print("##    Z axis step:             ", Z_STEP, "mm")
+        print("##    X axis sleep per mm:     ", X_SLEEP_PER_MM, "sec/mm")
+        print("##    Z axis sleep per mm:     ", Z_SLEEP_PER_MM, "sec/mm")
+        print("##")
+        while True:
+            ch = input("> ")
+            if ch in ['d', 'D']:
+                if not s.port:
+                    print("ERR! COM port not connected.")
+                    continue
+                make_image(s)
 
-    # Sending (or not) header.gcode
-    try:
-        header = open("header.gcode", "r")
-        cnt = 1
-        for line in header:
-            print(">>>> Sending line", cnt, "--", line.strip())
-            cnt += 1
-            s.write(str.encode(line + "\n"))
-            # s.flushInput()
-            # wait_for_signal(s, "wait")
-    except FileNotFoundError:
-        print("Header not found")
-    except Exception as e:
-        print("ERR! An error occured:", e)
-        return -1
+            elif ch in ['c', 'C']:
+                s = configure_com()
 
-    make_image(s)
+            elif ch in ['m', 'M']:
+                modify_constants()
 
-    live_mode(s)
+            elif ch in ['g', 'G']:
+                if not s.port:
+                    print("ERR! COM port not connected.")
+                    continue
+                live_mode(s)
+
+            elif ch in ['h', 'H']:
+                continue
+
+            else:
+                print("ERR! Unknown command")
+                continue
+            break
     
     s.close()
 
 def make_image(s):
+    
     # Loading image
     filename = input("Enter image filename: ")
     try:
@@ -231,6 +218,39 @@ def make_image(s):
             print(hex(px[0])[2:].zfill(2), hex(px[1])[2:].zfill(2), hex(px[2])[2:].zfill(2), end=" ", sep="")
         print("")
     
+    # Sending (or not) header.gcode
+    try:
+        header = open("header.gcode", "r")
+        h = input("Header file found. Send it to the printer? (y/n)")
+        if h in ["y", "Y"]:
+            print("Sending header.")
+            cnt = 1
+            for line in header:
+                print(">>>> Sending line", cnt, "--", line.strip())
+                cnt += 1
+                s.write(str.encode(line + "\n"))
+                # s.flushInput()
+                # wait_for_signal(s, "wait")
+            print("Header sent.")
+    except FileNotFoundError:
+        print("Header not found.")
+    except Exception as e:
+        print("ERR! An error occured:", e)
+        return -1
+    s.flushInput()
+    wait_for_signal(s, "wait", 10000)
+
+    while True:
+        try:
+            delay = int(input("Enter seconds to start drawing: "))
+            for i in range(delay):
+                print(i + 1)
+                time.sleep(1)
+        except ValueError:
+            print("ERR! Bad input.")
+            continue
+        break
+
     # Start time measurement
     start = time.time()
     print("Time measurement started")
@@ -252,7 +272,6 @@ def make_image(s):
 
             # Wait 
             time.sleep(LIGHT_TIME)
-
 
             # Turn off the light
             if PLAY_SOUND:
@@ -297,4 +316,5 @@ try:
     main()
 except KeyboardInterrupt:
     print("EOF recieved. Program stopped.")
+
 # input("Program Finished, press any key to continue. ")
