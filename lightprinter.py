@@ -4,6 +4,7 @@ import serial
 import imageio
 import glob
 # import playsound
+import led
 
 SERIAL_TIMEOUT = 0.1
 LIGHT_TIME = 3 # s
@@ -148,6 +149,8 @@ def configure_com() -> serial.Serial:
 
 def main():
     s = serial.Serial()
+    led.init()
+    led.off()
 
     while True:
         print("##################################################")
@@ -265,7 +268,7 @@ def make_image(s):
             # Turn the light on and set its color
             # playsound.playsound("on.mp3")
             print("Turn on light --", hex(px[0])[2:].zfill(2) + hex(px[1])[2:].zfill(2) + hex(px[2])[2:].zfill(2))
-            pass
+            led.on()
 
             # Wait 
             time.sleep(LIGHT_TIME)
@@ -273,7 +276,7 @@ def make_image(s):
             # Turn off the light
             # playsound.playsound("off.mp3")
             print("Turn off light")
-            pass
+            led.off()
 
             # Move X
             if x == len(row) - 1:
