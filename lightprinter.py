@@ -3,11 +3,9 @@ import sys
 import serial
 import imageio
 import glob
-import playsound
+# import playsound
 
 SERIAL_TIMEOUT = 0.1
-PLAY_SOUND = False
-
 LIGHT_TIME = 3 # s
 Z_SLEEP_PER_MM = 0.19 # s / mm
 X_SLEEP_PER_MM = 0.05 # s / mm
@@ -51,22 +49,22 @@ def print_serial_ports():
         print("##      ", p)
 
 def wait_for_signal(s, signal, timeout=10) -> bool:
-    print("Waiting for", signal, "signal")
+    print("Waiting for '", signal, "' signal.", sep="")
     resp = b""
     for _ in range(int(timeout / SERIAL_TIMEOUT)):
         resp += s.read(100)
         if str.encode(signal) in resp:
-            print("Recieved", signal, "signal")
+            print("Recieved '", signal, "' signal", sep="")
             return True
 
-    print("ERR! Response timeout hit")
+    print("ERR! Response timeout hit.")
     return False
 
 def live_mode(s):
     print("Live mode enabled (empty line ends):")
     inpt = " "
     while inpt:
-        inpt = input(": ")
+        inpt = input("> ")
         s.write(str.encode(inpt + "\n"))
 
 def modify_constants():
@@ -265,9 +263,7 @@ def make_image(s):
             if index % 2: print(index, len(row) - 1 - x, ":")
             else: print(index, x, ":")
             # Turn the light on and set its color
-            if PLAY_SOUND:
-                try: playsound.playsound("on.mp3")
-                except: pass
+            # playsound.playsound("on.mp3")
             print("Turn on light --", hex(px[0])[2:].zfill(2) + hex(px[1])[2:].zfill(2) + hex(px[2])[2:].zfill(2))
             pass
 
@@ -275,9 +271,7 @@ def make_image(s):
             time.sleep(LIGHT_TIME)
 
             # Turn off the light
-            if PLAY_SOUND:
-                try: playsound.playsound("off.mp3")
-                except: pass
+            # playsound.playsound("off.mp3")
             print("Turn off light")
             pass
 
