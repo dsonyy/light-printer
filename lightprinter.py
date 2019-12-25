@@ -69,18 +69,99 @@ def live_mode(s):
         inpt = input(": ")
         s.write(str.encode(inpt + "\n"))
 
-def print_menu(s):
-    print("##\tType a letter to nagivate:")
-    print("##\t c - Configure COM connection")
-    print("##\t g - Live G-Code session")
-    print("##\t d - Draw picture by light")
-    print("##\t h - Get some help about this project")
-    print("##\t")
-    if s.port:
-        print("##\t", s.port)
-    else:
-        print("##\tNot connected")
-    print("##\t")
+def modify_constants():
+    global LIGHT_TIME
+    global Z_SLEEP_PER_MM
+    global X_SLEEP_PER_MM
+    global X_STEP
+    global Z_STEP
+
+    print("##    Enter new constant (empty line to skip):")
+
+    print("##      Pixel light time (", LIGHT_TIME, "sec ): ", end="")
+    try:
+        new = float(input())
+        if not new >= 0: raise ValueError
+        LIGHT_TIME = new
+    except:
+        print("ERR! Invalid input. Value did not changed.")
+        return
+
+    print("##      X axis step (", X_STEP, "sec ): ", end="")
+    try:
+        new = float(input())
+        if not new >= 0: raise ValueError
+        X_STEP = new
+    except:
+        print("ERR! Invalid input. Value did not changed.")
+        return
+
+    print("##      Z axis step (", Z_STEP, "sec ): ", end="")
+    try:
+        new = float(input())
+        if not new >= 0: raise ValueError
+        Z_STEP = new
+    except:
+        print("ERR! Invalid input. Value did not changed.")
+        return
+
+    print("##      X axis sleep per mm (", X_SLEEP_PER_MM, "sec ): ", end="")
+    try:
+        new = float(input())
+        if not new >= 0: raise ValueError
+        X_SLEEP_PER_MM = new
+    except:
+        print("ERR! Invalid input. Value did not changed.")
+        return
+
+    print("##      Z axis sleep per mm (", Z_SLEEP_PER_MM, "sec ): ", end="")
+    try:
+        new = float(input())
+        if not new >= 0: raise ValueError
+        Z_SLEEP_PER_MM = new
+    except:
+        print("ERR! Invalid input. Value did not changed.")
+        return
+
+
+
+def menu(s):
+    print("##################################################")
+    print("##")
+    print("##    Type a letter to nagivate:")
+    print("##      d - DRAW AN IMAGE")
+    print("##      c - Configure COM connection")
+    print("##      m - Modify constants")
+    print("##      g - Live G-Code session")
+    print("##      h - Get some help about this project")
+    print("##")
+    if s.port: print("##    Port:", s.port)
+    else: print("##    Port:                     Not connected")
+    print("##")
+    print("##    Pixel light time:        ", LIGHT_TIME, "sec")
+    print("##    X axis step:             ", X_STEP, "mm")
+    print("##    Z axis step:             ", Z_STEP, "mm")
+    print("##    X axis sleep per mm:     ", X_SLEEP_PER_MM, "sec/mm")
+    print("##    Z axis sleep per mm:     ", Z_SLEEP_PER_MM, "sec/mm")
+    print("##")
+
+    while True:
+        ch = input("> ")
+        if ch in ['d', 'D']:
+            pass
+        elif ch in ['c', 'C']:
+            pass
+        elif ch in ['m', 'M']:
+            modify_constants()
+        elif ch in ['g', 'G']:
+            pass
+        elif ch in ['h', 'H']:
+            pass
+        else:
+            print("ERR! Unknown command")
+            continue
+        break
+
     
 def color_hex(color):
     c = ""
@@ -88,11 +169,8 @@ def color_hex(color):
 
 def main():
     # Welcome screen
-    # print("##\t")
-    # print("##\tWelcome to LIGHTPRINTER software!")
-    # print("##\t")
     s = serial.Serial()
-    # print_menu(s)
+    menu(s)
 
 
     # Printing available serial ports
