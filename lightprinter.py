@@ -2,6 +2,7 @@ import time
 import sys
 import serial
 import imageio
+import glob
 import playsound
 
 SERIAL_TIMEOUT = 0.1
