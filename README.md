@@ -1,0 +1,7 @@
+# Dependencies
+
+`
+    pyserial
+    imageio
+    playsound
+`
