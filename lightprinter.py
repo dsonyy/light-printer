@@ -6,14 +6,14 @@ import glob
 # import playsound
 import led
 
-SERIAL_TIMEOUT = 0.8 # s
-LIGHT_TIME = 0.5 # s
+SERIAL_TIMEOUT = 0.1 # s
+LIGHT_TIME = 2 # s
 Z_SLEEP_PER_MM = 0.14 # s / mm
 X_SLEEP_PER_MM = 0.05 # s / mm
 X_STEP = 11 # mm
 Z_STEP = 11 # mm
 LIGHT_MODE = "Red light only" # "Red light only" / "Blue light only" / "Green light only" / "RBG"
-BLACK_THRESHOLD = 33 # 0-255
+BLACK_THRESHOLD = 0 # 0-255
 
 # Source: https://stackoverflow.com/a/14224477/7389107
 def serial_ports():
@@ -265,12 +265,12 @@ def make_image(s):
     for row, index in zip(img, range(len(img))):
         if index % 2:
             row = row[::-1]
-
+       
         for px, x in zip(row, range(len(row))):
             if index % 2: print(index, len(row) - 1 - x, ":")
             else: print(index, x, ":")
 
-            if px[0] < BLACK_THRESHOLD and px[1] < BLACK_THRESHOLD and px[2] < BLACK_THRESHOLD:
+            if 1 == 4: # px[0] < BLACK_THRESHOLD and px[1] < BLACK_THRESHOLD and px[2] < BLACK_THRESHOLD:
                 print("Skipping black pixel")
             else:
                 # Turn the light on and set its color
@@ -303,7 +303,7 @@ def make_image(s):
             s.write(str.encode(gcode + "\n"))
 
             # Sleeping
-            if not (px[0] == 0 and px[1] == 0 and px[2] == 0):
+            if True: # not (px[0] == 0 and px[1] == 0 and px[2] == 0):
                 time.sleep(X_STEP * X_SLEEP_PER_MM)
                 # s.flushInput()
                 # wait_for_signal(s, "wait")
@@ -319,6 +319,7 @@ def make_image(s):
         time.sleep(Z_STEP * Z_SLEEP_PER_MM)
         # s.flushInput()
         # wait_for_signal(s, "wait")
+
 
     end = time.time()
     print("Operation time:", end - start, "seconds")
