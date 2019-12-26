@@ -279,11 +279,11 @@ def make_image(s):
                 # Wait
                 # "Red light only" / "Blue light only" / "Green light only" / "RBG"
                 if LIGHT_MODE == "Red light only":
-                    time.sleep(255 / px[0] * LIGHT_TIME)
+                    time.sleep(px[0] / 255 * LIGHT_TIME)
                 elif LIGHT_MODE == "Blue light only":
-                    time.sleep(255 / px[1] * LIGHT_TIME)
+                    time.sleep(px[1] / 255 * LIGHT_TIME)
                 elif LIGHT_MODE == "Green light only":
-                    time.sleep(255 / px[2] * LIGHT_TIME)
+                    time.sleep(px[2] / 255 * LIGHT_TIME)
 
                 # Turn off the light
                 # playsound.playsound("off.mp3")
