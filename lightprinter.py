@@ -267,18 +267,28 @@ def make_image(s):
         for px, x in zip(row, range(len(row))):
             if index % 2: print(index, len(row) - 1 - x, ":")
             else: print(index, x, ":")
-            # Turn the light on and set its color
-            # playsound.playsound("on.mp3")
-            print("Turn on light --", hex(px[0])[2:].zfill(2) + hex(px[1])[2:].zfill(2) + hex(px[2])[2:].zfill(2))
-            led.on()
 
-            # Wait 
-            time.sleep(LIGHT_TIME)
+            if px[0] == 0 and px[1] == 0 and px[2] == 0:
+                print("Skipping black pixel")
+            else:
+                # Turn the light on and set its color
+                # playsound.playsound("on.mp3")
+                print("Turn on light --", hex(px[0])[2:].zfill(2) + hex(px[1])[2:].zfill(2) + hex(px[2])[2:].zfill(2))
+                led.on()
 
-            # Turn off the light
-            # playsound.playsound("off.mp3")
-            print("Turn off light")
-            led.off()
+                # Wait
+                # "Red light only" / "Blue light only" / "Green light only" / "RBG"
+                if LIGHT_MODE == "Red light only":
+                    time.sleep(255 / px[0] * LIGHT_TIME)
+                elif LIGHT_MODE == "Blue light only":
+                    time.sleep(255 / px[1] * LIGHT_TIME)
+                elif LIGHT_MODE == "Green light only":
+                    time.sleep(255 / px[2] * LIGHT_TIME)
+
+                # Turn off the light
+                # playsound.playsound("off.mp3")
+                print("Turn off light")
+                led.off()
 
             # Move X
             if x == len(row) - 1:
@@ -290,9 +300,10 @@ def make_image(s):
             s.write(str.encode(gcode + "\n"))
 
             # Sleeping
-            time.sleep(X_STEP * X_SLEEP_PER_MM)
-            # s.flushInput()
-            # wait_for_signal(s, "wait")
+            if not (px[0] == 0 and px[1] == 0 and px[2] == 0):
+                time.sleep(X_STEP * X_SLEEP_PER_MM)
+                # s.flushInput()
+                # wait_for_signal(s, "wait")
             
         # Move Z
         if index == len(img) - 1:
