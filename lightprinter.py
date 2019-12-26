@@ -6,12 +6,12 @@ import glob
 # import playsound
 import led
 
-SERIAL_TIMEOUT = 0.1 # s
+SERIAL_TIMEOUT = 0.8 # s
 LIGHT_TIME = 0.5 # s
 Z_SLEEP_PER_MM = 0.14 # s / mm
 X_SLEEP_PER_MM = 0.05 # s / mm
-X_STEP = 10 # mm
-Z_STEP = 10 # mm
+X_STEP = 11 # mm
+Z_STEP = 11 # mm
 LIGHT_MODE = "Red light only" # "Red light only" / "Blue light only" / "Green light only" / "RBG"
 BLACK_THRESHOLD = 33 # 0-255
 
@@ -133,7 +133,8 @@ def configure_com() -> serial.Serial:
         return serial.Serial()
 
     # Estabilishing connection
-    i = input("##    Port: ")
+    # i = input("##    Port: ")
+    i = "/dev/ttyUSB0"
     try:
         s = serial.Serial(i, 115200, timeout=SERIAL_TIMEOUT)
         print("Connection estabilished")
@@ -280,7 +281,8 @@ def make_image(s):
                 # Wait
                 # "Red light only" / "Blue light only" / "Green light only" / "RBG"
                 if LIGHT_MODE == "Red light only":
-                    time.sleep(px[0] / 255 * LIGHT_TIME)
+                     r = px[0] / 255 * LIGHT_TIME
+                     time.sleep(r * r)
                 elif LIGHT_MODE == "Blue light only":
                     time.sleep(px[1] / 255 * LIGHT_TIME)
                 elif LIGHT_MODE == "Green light only":
