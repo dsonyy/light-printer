@@ -6,12 +6,13 @@ import glob
 # import playsound
 import led
 
-SERIAL_TIMEOUT = 0.1
+SERIAL_TIMEOUT = 0.1 # s
 LIGHT_TIME = 3 # s
 Z_SLEEP_PER_MM = 0.19 # s / mm
 X_SLEEP_PER_MM = 0.05 # s / mm
 X_STEP = 10 # mm
 Z_STEP = 10 # mm
+LIGHT_MODE = "Red light only" # "Red light only" / "Blue light only" / "Green light only" / "RBG"
 
 # Source: https://stackoverflow.com/a/14224477/7389107
 def serial_ports():
@@ -257,6 +258,7 @@ def make_image(s):
     start = time.time()
     print("Time measurement started")
 
+    # Drawing
     img = img[::-1]
     for row, index in zip(img, range(len(img))):
         if index % 2:
