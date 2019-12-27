@@ -3,7 +3,7 @@ import sys
 import serial
 import imageio
 import glob
-# import playsound
+from os import listdir
 import led
 
 SERIAL_TIMEOUT = 0.1 # s
@@ -14,6 +14,7 @@ X_STEP = 11 # mm
 Z_STEP = 11 # mm
 LIGHT_MODE = "Red light only" # "Red light only" / "Blue light only" / "Green light only" / "RBG"
 BLACK_THRESHOLD = 0 # 0-255
+DEFAULT_PORT = "/dev/ttyUSB0"
 
 # Source: https://stackoverflow.com/a/14224477/7389107
 def serial_ports():
@@ -57,10 +58,10 @@ def wait_for_signal(s, signal, timeout=10) -> bool:
     for _ in range(int(timeout / SERIAL_TIMEOUT)):
         resp += s.read(100)
         if str.encode(signal) in resp:
-            print("Recieved '", signal, "' signal", sep="")
+            print("Recieved '", signal, "' signal.", sep="")
             return True
 
-    print("ERR! Response timeout hit.")
+    print("ERR! Timeout.")
     return False
 
 def live_mode(s):
@@ -124,7 +125,7 @@ def modify_constants():
         print("ERR! Invalid input. Value did not changed.")
         return
 
-def configure_com() -> serial.Serial:
+def configure_com(port=None) -> serial.Serial:
     # Printing available serial ports
     try:
         print_serial_ports()
@@ -133,11 +134,11 @@ def configure_com() -> serial.Serial:
         return serial.Serial()
 
     # Estabilishing connection
-    # i = input("##    Port: ")
-    i = "/dev/ttyUSB0"
+    if not port: i = input("##    Port: ")
+    else: i = DEFAULT_PORT
     try:
         s = serial.Serial(i, 115200, timeout=SERIAL_TIMEOUT)
-        print("Connection estabilished")
+        print("Connection estabilished.")
     except Exception as e:
         print("ERR! An error occured:", e)
         return serial.Serial()
@@ -145,112 +146,88 @@ def configure_com() -> serial.Serial:
     # Waiting for 'start' signal form printer
     signal = "wait"
     if not wait_for_signal(s, signal):
-        print("ERR! Signal", signal, "not sent")
+        print("ERR! Signal", signal, "not sent.")
         return serial.Serial()
 
     return s
 
-def main():
-    s = serial.Serial()
-    led.init()
-    led.off()
-
-    while True:
-        print("##################################################")
-        print("##")
-        print("##    Type a letter to nagivate:")
-        print("##      d - DRAW AN IMAGE")
-        print("##      c - Configure COM connection")
-        print("##      m - Modify constants")
-        print("##      g - Live G-Code session")
-        print("##      h - Get some help about this project")
-        print("##")
-        if s.port: print("##    Port:", s.port)
-        else: print("##    Port:                     Not connected")
-        print("##")
-        print("##    Pixel light time:        ", LIGHT_TIME, "sec")
-        print("##    X axis step:             ", X_STEP, "mm")
-        print("##    Z axis step:             ", Z_STEP, "mm")
-        print("##    X axis sleep per mm:     ", X_SLEEP_PER_MM, "sec/mm")
-        print("##    Z axis sleep per mm:     ", Z_SLEEP_PER_MM, "sec/mm")
-        print("##")
-        while True:
-            ch = input("> ")
-            if ch in ['d', 'D']:
-                if not s.port:
-                    print("ERR! COM port not connected.")
-                    continue
-                make_image(s)
-
-            elif ch in ['c', 'C']:
-                s = configure_com()
-
-            elif ch in ['m', 'M']:
-                modify_constants()
-
-            elif ch in ['g', 'G']:
-                if not s.port:
-                    print("ERR! COM port not connected.")
-                    continue
-                live_mode(s)
-
-            elif ch in ['h', 'H']:
-                continue
-
-            else:
-                print("ERR! Unknown command")
-                continue
-            break
-    
-    s.close()
-
-def make_image(s):
-    
-    # Loading image
-    filename = input("Enter image filename: ")
-    try:
-        img = imageio.imread(filename)
-    except FileNotFoundError:
-        print("ERR! File not found")
-        return
-    except Exception as e:
-        print("ERR! An error occured:", e)
-    
-    # Displaying image pixel colors
-    print("Colors loaded:")
-    for row in img:
-        for px in row:
-            print(hex(px[0])[2:].zfill(2), hex(px[1])[2:].zfill(2), hex(px[2])[2:].zfill(2), end=" ", sep="")
-        print("")
-    
-    # Sending (or not) header.gcode
+def send_header(s):
     try:
         header = open("header.gcode", "r")
-        h = input("Header file found. Send it to the printer? (y/n)")
-        if h in ["y", "Y"]:
-            print("Sending header.")
-            cnt = 1
-            for line in header:
-                print(">>>> Sending line", cnt, "--", line.strip())
-                cnt += 1
-                s.write(str.encode(line + "\n"))
-                # s.flushInput()
-                # wait_for_signal(s, "wait")
+        print("Header file found. Sending it to the printer.")
+        cnt = 1
+        for line in header:
+            print(">>>> Sending line", cnt, "--", line.strip())
+            cnt += 1
+            s.write(str.encode(line + "\n"))
             print("Header sent.")
     except FileNotFoundError:
-        print("Header not found.")
+        print("Header file not found.")
     except Exception as e:
         print("ERR! An error occured:", e)
         return -1
     s.flushInput()
     wait_for_signal(s, "wait", 10000)
 
+def send_footer(s):
+    try:
+        header = open("footer.gcode", "r")
+        print("Footer file found. Sending it to the printer.")
+        cnt = 1
+        for line in header:
+            print(">>>> Sending line", cnt, "--", line.strip())
+            cnt += 1
+            s.write(str.encode(line + "\n"))
+        print("Footer sent.")
+    except FileNotFoundError:
+        print("Footer file not found.")
+    except Exception as e:
+        print("ERR! An error occured:", e)
+        return -1
+    # s.flushInput()
+    # wait_for_signal(s, "wait", 10000)
+
+def make_image(s):
+    # List available images
+    print("##    Available input images:")
+    files = listdir("input/")
+    for inp in files:
+        print("##       ", files.index(inp) + 1, ". ", inp, " ", sep="")
+    print("##")
+    
+    # Loading image
+    try:
+        number = int(input("Enter image number: "))
+        if number - 1 < 0: raise IndexError
+        img = imageio.imread("input/" + files[number - 1])
+    except FileNotFoundError:
+        print("ERR! File not found.")
+        return
+    except (IndexError, ValueError):
+        print("ERR! Invalid numer.")
+        return
+    except Exception as e:
+        print("ERR! An error occured:", e)
+        return
+    
+    # Displaying image pixel colors
+    print("Colors loaded:")
+    print("Dimensions:", len(img), "x", len(img[0]))
+    for row in img:
+        for px in row:
+            print(hex(px[0])[2:].zfill(2), hex(px[1])[2:].zfill(2), hex(px[2])[2:].zfill(2), end=" ", sep="")
+        print("")
+    
+    # Sending header
+    send_header(s)
+
     while True:
         try:
             delay = int(input("Enter seconds to start drawing: "))
-            for i in range(delay):
+            for i in reversed(range(delay)):
                 print(i + 1)
                 time.sleep(1)
+            print("DRAWING STARTED.")
         except ValueError:
             print("ERR! Bad input.")
             continue
@@ -258,7 +235,7 @@ def make_image(s):
 
     # Start time measurement
     start = time.time()
-    print("Time measurement started")
+    print("Time measurement started.")
 
     # Drawing
     img = img[::-1]
@@ -271,11 +248,10 @@ def make_image(s):
             else: print(index, x, ":")
 
             if 1 == 4: # px[0] < BLACK_THRESHOLD and px[1] < BLACK_THRESHOLD and px[2] < BLACK_THRESHOLD:
-                print("Skipping black pixel")
+                print("Skipping black pixel.")
             else:
                 # Turn the light on and set its color
-                # playsound.playsound("on.mp3")
-                print("Turn on light --", hex(px[0])[2:].zfill(2) + hex(px[1])[2:].zfill(2) + hex(px[2])[2:].zfill(2))
+                print("Turn on the light --", hex(px[0])[2:].zfill(2) + hex(px[1])[2:].zfill(2) + hex(px[2])[2:].zfill(2))
                 led.on()
 
                 # Wait
@@ -289,8 +265,7 @@ def make_image(s):
                     time.sleep(px[2] / 255 * LIGHT_TIME)
 
                 # Turn off the light
-                # playsound.playsound("off.mp3")
-                print("Turn off light")
+                print("Turn off the light.")
                 led.off()
 
             # Move X
@@ -326,6 +301,67 @@ def make_image(s):
     print("Total pixels:", len(img) * len(img[0]))
     print("Average time for single pixel:", (end - start) / (len(img) * len(img[0])), "seconds")
 
+    send_footer(s)
+
+def main():
+    s = configure_com()
+    led.init()
+    led.off()
+
+    while True:
+        print("##################################################")
+        print("##")
+        print("##    Type a letter to nagivate:")
+        print("##      c - Configure COM connection")
+        print("##      m - Modify constants")
+        print("##      d - DRAW AN IMAGE")
+        print("##      h - Get some help about this project")
+        print("##")
+        if s.port: print("##    Port:", s.port)
+        else: print("##    Port:                     Not connected")
+        print("##")
+        print("##    Pixel light time:        ", LIGHT_TIME, "sec")
+        print("##    X axis step:             ", X_STEP, "mm")
+        print("##    Z axis step:             ", Z_STEP, "mm")
+        print("##    X axis sleep per mm:     ", X_SLEEP_PER_MM, "sec/mm")
+        print("##    Z axis sleep per mm:     ", Z_SLEEP_PER_MM, "sec/mm")
+        print("##")
+
+        while True:
+            ch = input("> ").strip()
+            if ch in ['d', 'D']:
+                if not s.port:
+                    print("ERR! COM port not connected.")
+                    continue
+                try:
+                    make_image(s)
+                except KeyboardInterrupt:
+                    print("Operation cancelled.")
+
+            elif ch in ['c', 'C']:
+                s = configure_com()
+
+            elif ch in ['m', 'M']:
+                try:
+                    modify_constants()
+                except KeyboardInterrupt:
+                    print("Operation cancelled but some changes could have been saved.")
+
+            elif ch in ['g', 'G']:
+                if not s.port:
+                    print("ERR! COM port not connected.")
+                    continue
+                live_mode(s)
+
+            elif ch in ['h', 'H']:
+                continue
+
+            else:
+                print("ERR! Unknown command")
+                continue
+            break
+    
+    s.close()
 
 try:
     main()
