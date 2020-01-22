@@ -3,3 +3,4 @@
 ```pyserial```  
 ```imageio```  
 ```playsound```  
+```pigpio```

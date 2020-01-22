@@ -1,10 +1,7 @@
-import time
-import sys
-import serial
-import imageio
-import glob
-from os import listdir
-import led
+
+###############################################################################
+###############################################################################
+###############################################################################
 
 SERIAL_TIMEOUT = 0.1 # s
 LIGHT_TIME = 2 # s
@@ -12,9 +9,24 @@ Z_SLEEP_PER_MM = 0.14 # s / mm
 X_SLEEP_PER_MM = 0.05 # s / mm
 X_STEP = 11 # mm
 Z_STEP = 11 # mm
-LIGHT_MODE = "Red light only" # "Red light only" / "Blue light only" / "Green light only" / "RBG"
 BLACK_THRESHOLD = 0 # 0-255
 DEFAULT_PORT = "/dev/ttyUSB0"
+
+PIN_RED = 21
+PIN_GREEN = 20
+PIN_BLUE = 16
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+import time
+import sys
+import serial
+import imageio
+import glob
+from os import listdir
+import pigpio
 
 # Source: https://stackoverflow.com/a/14224477/7389107
 def serial_ports():
@@ -71,60 +83,6 @@ def live_mode(s):
         inpt = input("> ")
         s.write(str.encode(inpt + "\n"))
 
-def modify_constants():
-    global LIGHT_TIME
-    global Z_SLEEP_PER_MM
-    global X_SLEEP_PER_MM
-    global X_STEP
-    global Z_STEP
-
-    print("##    Enter new constant:")
-
-    print("##      Pixel light time (", LIGHT_TIME, "sec ): ", end="")
-    try:
-        new = float(input())
-        if not new >= 0: raise ValueError
-        LIGHT_TIME = new
-    except:
-        print("ERR! Invalid input. Value did not changed.")
-        return
-
-    print("##      X axis step (", X_STEP, "mm ): ", end="")
-    try:
-        new = float(input())
-        if not new >= 0: raise ValueError
-        X_STEP = new
-    except:
-        print("ERR! Invalid input. Value did not changed.")
-        return
-
-    print("##      Z axis step (", Z_STEP, "mm ): ", end="")
-    try:
-        new = float(input())
-        if not new >= 0: raise ValueError
-        Z_STEP = new
-    except:
-        print("ERR! Invalid input. Value did not changed.")
-        return
-
-    print("##      X axis sleep per mm (", X_SLEEP_PER_MM, "sec/mm ): ", end="")
-    try:
-        new = float(input())
-        if not new >= 0: raise ValueError
-        X_SLEEP_PER_MM = new
-    except:
-        print("ERR! Invalid input. Value did not changed.")
-        return
-
-    print("##      Z axis sleep per mm (", Z_SLEEP_PER_MM, "sec/mm ): ", end="")
-    try:
-        new = float(input())
-        if not new >= 0: raise ValueError
-        Z_SLEEP_PER_MM = new
-    except:
-        print("ERR! Invalid input. Value did not changed.")
-        return
-
 def configure_com(port=None) -> serial.Serial:
     # Printing available serial ports
     try:
@@ -165,7 +123,7 @@ def send_header(s):
         print("Header file not found.")
     except Exception as e:
         print("ERR! An error occured:", e)
-        return -1
+        return
     s.flushInput()
     wait_for_signal(s, "wait", 10000)
 
@@ -183,11 +141,11 @@ def send_footer(s):
         print("Footer file not found.")
     except Exception as e:
         print("ERR! An error occured:", e)
-        return -1
+        return
     # s.flushInput()
     # wait_for_signal(s, "wait", 10000)
 
-def make_image(s):
+def make_image(s, gpio):
     # List available images
     print("##    Available input images:")
     files = listdir("input/")
@@ -221,6 +179,7 @@ def make_image(s):
     # Sending header
     send_header(s)
 
+    # Time to start drawing
     while True:
         try:
             delay = int(input("Enter seconds to start drawing: "))
@@ -252,21 +211,18 @@ def make_image(s):
             else:
                 # Turn the light on and set its color
                 print("Turn on the light --", hex(px[0])[2:].zfill(2) + hex(px[1])[2:].zfill(2) + hex(px[2])[2:].zfill(2))
-                led.on()
+                gpio.set_PWM_dutycycle(px[0], 0)
+                gpio.set_PWM_dutycycle(px[1], 0)
+                gpio.set_PWM_dutycycle(px[2], 0)
 
                 # Wait
-                # "Red light only" / "Blue light only" / "Green light only" / "RBG"
-                if LIGHT_MODE == "Red light only":
-                     r = px[0] / 255 * LIGHT_TIME
-                     time.sleep(r * r)
-                elif LIGHT_MODE == "Blue light only":
-                    time.sleep(px[1] / 255 * LIGHT_TIME)
-                elif LIGHT_MODE == "Green light only":
-                    time.sleep(px[2] / 255 * LIGHT_TIME)
+                time.sleep(LIGHT_TIME)
 
                 # Turn off the light
                 print("Turn off the light.")
-                led.off()
+                gpio.set_PWM_dutycycle(PIN_RED, 0)
+                gpio.set_PWM_dutycycle(PIN_GREEN, 0)
+                gpio.set_PWM_dutycycle(PIN_BLUE, 0)
 
             # Move X
             if x == len(row) - 1:
@@ -305,15 +261,18 @@ def make_image(s):
 
 def main():
     s = configure_com()
-    led.init()
-    led.off()
+    print("RGB Mode. Pin red:", PIN_RED, ", pin green:", PIN_GREEN, ", pin blue:", PIN_BLUE)
+    print("Initializing GPIOs")
+    gpio = pigpio.pi()
+    gpio.set_PWM_dutycycle(PIN_RED, 0)
+    gpio.set_PWM_dutycycle(PIN_GREEN, 0)
+    gpio.set_PWM_dutycycle(PIN_BLUE, 0)
 
     while True:
         print("##################################################")
         print("##")
         print("##    Type a letter to nagivate:")
         print("##      c - Configure COM connection")
-        print("##      m - Modify constants")
         print("##      d - DRAW AN IMAGE")
         print("##      h - Get some help about this project")
         print("##")
@@ -334,18 +293,12 @@ def main():
                     print("ERR! COM port not connected.")
                     continue
                 try:
-                    make_image(s)
+                    make_image(s, gpio)
                 except KeyboardInterrupt:
                     print("Operation cancelled.")
 
             elif ch in ['c', 'C']:
                 s = configure_com()
-
-            elif ch in ['m', 'M']:
-                try:
-                    modify_constants()
-                except KeyboardInterrupt:
-                    print("Operation cancelled but some changes could have been saved.")
 
             elif ch in ['g', 'G']:
                 if not s.port:
