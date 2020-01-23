@@ -93,7 +93,7 @@ def configure_com(port=None) -> serial.Serial:
 
     # Estabilishing connection
     if not port: i = input("##    Port: ")
-    else: i = DEFAULT_PORT
+    else: i = port
     try:
         s = serial.Serial(i, 115200, timeout=SERIAL_TIMEOUT)
         print("Connection estabilished.")
@@ -206,7 +206,7 @@ def make_image(s, gpio):
             if index % 2: print(index, len(row) - 1 - x, ":")
             else: print(index, x, ":")
 
-            if 1 == 4: # px[0] < BLACK_THRESHOLD and px[1] < BLACK_THRESHOLD and px[2] < BLACK_THRESHOLD:
+            if px[0] <= BLACK_THRESHOLD and px[1] <= BLACK_THRESHOLD and px[2] <= BLACK_THRESHOLD:
                 print("Skipping black pixel.")
             else:
                 # Turn the light on and set its color
