@@ -1,0 +1,35 @@
+import pigio
+
+pi = pigio.pi()
+R_PIN = 21
+G_PIN = 20
+B_PIN = 16
+
+r = 0
+g = 0
+b = 0
+while True:
+	for i in range(256):
+		pi.set_PWM_dutycycle(R_PIN, i)
+
+	for i in range(256):
+		pi.set_PWM_dutycycle(G_PIN, i)
+
+	for i in reversed(range(256)):
+		pi.set_PWM_dutycycle(R_PIN, i)
+
+        for i in range(256):
+                pi.set_PWM_dutycycle(B_PIN, i)
+
+        for i in reversed(range(256)):
+                pi.set_PWM_dutycycle(G_PIN, i)
+
+        for i in range(256):
+                pi.set_PWM_dutycycle(R_PIN, i)
+
+        for i in reversed(range(256)):
+                pi.set_PWM_dutycycle(B
+        for i in reversed(range(256)):
+                pi.set_PWM_dutycycle(G_PIN, i)
+_PIN, i)
+

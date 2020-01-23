@@ -1,3 +1,3 @@
 sudo pigpiod
-python3 lightprinter.py
+sudo python3 lightprinter.py
 

@@ -211,9 +211,9 @@ def make_image(s, gpio):
             else:
                 # Turn the light on and set its color
                 print("Turn on the light --", hex(px[0])[2:].zfill(2) + hex(px[1])[2:].zfill(2) + hex(px[2])[2:].zfill(2))
-                gpio.set_PWM_dutycycle(px[0], 0)
-                gpio.set_PWM_dutycycle(px[1], 0)
-                gpio.set_PWM_dutycycle(px[2], 0)
+                gpio.set_PWM_dutycycle(PIN_RED, px[0])
+                gpio.set_PWM_dutycycle(PIN_GREEN, px[1])
+                gpio.set_PWM_dutycycle(PIN_BLUE, px[2])
 
                 # Wait
                 time.sleep(LIGHT_TIME)
