@@ -4,11 +4,11 @@
 ###############################################################################
 
 SERIAL_TIMEOUT = 0.1 # s
-LIGHT_TIME = 2 # s
+LIGHT_TIME = 0.05 # s
 Z_SLEEP_PER_MM = 0.14 # s / mm
-X_SLEEP_PER_MM = 0.05 # s / mm
-X_STEP = 11 # mm
-Z_STEP = 11 # mm
+X_SLEEP_PER_MM = 0.04 # s / mm
+X_STEP = 9.5 # mm
+Z_STEP = 9.5 # mm
 BLACK_THRESHOLD = 0 # 0-255
 DEFAULT_PORT = "/dev/ttyUSB0"
 
