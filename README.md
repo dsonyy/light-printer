@@ -12,7 +12,7 @@
 
 
 ## What is it?
-**Light Printer** is a small project developed with love for long exposure photos. The program originally works on Raspberry Pi which sends G-code commands directly to the Anet A8 3D-printer. The printer doesn't print anything but it is used as some kind of vertical plotter. There is a RGB LED on the front part of the printer's extruder which is also controlled by Raspberry. Everything closely works together so we can take a long exposure photo of whole process to get a final image.
+**Light Printer** is a small project developed with love for long exposure photos. The program originally works on Raspberry Pi which sends G-code commands directly to the Anet A8 3D-printer. The device doesn't print anything but it is used as some kind of vertical plotter. There is a RGB LED on the front part of the printer's extruder which is also controlled by Raspberry. Everything closely works together so we can take a long exposure photo of whole process to get a final image.
 
 Here you can see this project in action:
 
@@ -34,7 +34,7 @@ Please note that this code is written only for **Anet A8 3D printer**. I haven't
 - **Anet A8 printer** - but actually it could be anything which is G-code programmable, has X and Y axis and allows you to put a LED box on its head.
 - **Raspberry Pi** - or something with GPIO ports and Python.
 - **A camera with (very) long exposure photos** - 30s exposure may be too short period of time. Average photo needs a few minutes to be drawn completely.
-- **A box with a small hole and RGB LED inside** - we have to be sure that every shot of a single photo's pixel will se sharp. There is no place for freely flashing LEDs. I have prepared some 3D-printable models to store LED which are ready to be used with Anet A8:
+- **A box with a small hole and RGB LED inside** - we have to be sure that every shot of a single photo's pixel will se sharp. I have prepared some 3D-printable models to store LED which are ready to be used with Anet A8.
 
 ### First run
 1. Install Python requirements from `requirements.txt`on your Raspberry Pi.
@@ -45,7 +45,7 @@ Please note that this code is written only for **Anet A8 3D printer**. I haven't
 6. Follow the instructions to "draw" an image.
 
 ### Input images
-Input images should be located inside the `input` directory. They mustn't contain transparent pixels. To speed up printing, empty pixels should be black `#000000` - they will be skipped.
+Input images should be located inside the `input` directory. They mustn't contain transparent pixels. To speed up printing empty pixels should be black `#000000` - they will be skipped.
 
 ### Constants
 If you have a look inside `lightprinter.py` there are some constants which are suitable for my setup:
@@ -60,9 +60,9 @@ If you have a look inside `lightprinter.py` there are some constants which are s
 - `PIN_GREEN` - GPIO pin number for green light control.
 - `PIN_BLUE` - GPIO pin number for blue light control.
 
-**&ast;** If the program send move command to the printer, the extruder won't be moved instantly. So that we need to wait a bit untill the extruder is in the right place. The final delay time equals to `X_STEP * X_SLEEP_PER_MM` for horizontal movement and `Z_STEP * Z_SLEEP_PER_MM` for vertical.
+**&ast;** If the program sends move command to the printer, it takes some time to physically move the extruder. So that we need to wait a bit untill the extruder is in the right place. The final delay time equals to `X_STEP * X_SLEEP_PER_MM` for horizontal movement and `Z_STEP * Z_SLEEP_PER_MM` for vertical.
 
 ### Camera settings
-Long exposure time depends on the an image size. Every input image row adds additional seconds so it usually takes a few minutes to make a picture. The most importat thing is there must be a **fully dark room** because every single light may be visible on the final picture.
+Long exposure time depends on the image size. Every input image row adds additional seconds so it usually takes a few minutes to make a whole picture. The most importat thing is there must be a **fully dark room** because every single light may be visible on the final picture.
 
 To create the pictures from the [gallery](#gallery) section I used F3.2 and F3.5 shutter, ISO 100 and manual exposure time.
