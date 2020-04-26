@@ -12,10 +12,11 @@
 
 
 ## What is it?
-**Light Printer** is a small project developed with love for long exposure photos. The program originally works on Raspberry Pi which sends G-code commands directly to the Anet A8 3D-printer. The device doesn't print anything but it is used as some kind of vertical plotter. There is a RGB LED on the front part of the printer's extruder which is also controlled by Raspberry. Everything closely works together so we can take a long exposure photo of whole process to get a final image.
+**Light Printer** is a small project developed with love for long exposure photos. The program originally works on Raspberry Pi. It sends G-code commands directly to the Anet A8 3D-printer. The device doesn't print anything, but it is used as some kind of vertical plotter. There is a RGB LED on the front part of the printer's extruder, which is also controlled by Raspberry. The camera captures every blink of the light with a long exposure in a very dark room. Everything works closely together in an effort to produce a correct picture.
 
-Here you can see this project in action:
-
+<p align="center">
+    <img src="examples/preview.gif">
+</p>
 
 ## Gallery
 <p align="center">
@@ -28,12 +29,12 @@ Here you can see this project in action:
 </p>
 
 ## How to run it?
-Please note that this code is written only for **Anet A8 3D printer**. I haven't tested it for any other printers so it would have to be adjusted a little bit.
+Please note that this code is written only for **Anet A8 3D printer**. I haven't tested it for any other printers, so it would have to be adjusted a little bit.
 
 ### Requirements
-- **Anet A8 printer** - but actually it could be anything which is G-code programmable, has X and Y axis and allows you to put a LED box on its head.
+- **Anet A8 printer** - but actually, it could be anything, which is G-code programmable and allows you to put a LED box on its head.
 - **Raspberry Pi** - or something with GPIO ports and Python.
-- **A camera with (very) long exposure photos** - 30s exposure may be too short period of time. Average photo needs a few minutes to be drawn completely.
+- **A camera with (very) long exposure photos** - 30s exposure may be a too short period of time. An average photo needs a few minutes to be drawn completely.
 - **A box with a small hole and RGB LED inside** - we have to be sure that every shot of a single photo's pixel will se sharp. I have prepared some 3D-printable models to store LED which are ready to be used with Anet A8.
 
 ### First run
@@ -60,9 +61,9 @@ If you have a look inside `lightprinter.py` there are some constants which are s
 - `PIN_GREEN` - GPIO pin number for green light control.
 - `PIN_BLUE` - GPIO pin number for blue light control.
 
-**&ast;** If the program sends move command to the printer, it takes some time to physically move the extruder. So that we need to wait a bit untill the extruder is in the right place. The final delay time equals to `X_STEP * X_SLEEP_PER_MM` for horizontal movement and `Z_STEP * Z_SLEEP_PER_MM` for vertical.
+**&ast;** If the program sends move command to the printer, it takes some time to physically move the extruder. So that, we need to wait a bit until the extruder is in the right place. The final delay time equals to `X_STEP * X_SLEEP_PER_MM` for horizontal movement and `Z_STEP * Z_SLEEP_PER_MM` for vertical.
 
 ### Camera settings
-Long exposure time depends on the image size. Every input image row adds additional seconds so it usually takes a few minutes to make a whole picture. The most importat thing is there must be a **fully dark room** because every single light may be visible on the final picture.
+Long exposure time depends on the image size. Every input image row adds additional seconds, so it usually takes a few minutes to make a whole picture. The most importat thing is there must be a **fully dark room** because every single light may be visible on the final picture.
 
 To create the pictures from the [gallery](#gallery) section I used F3.2 and F3.5 shutter, ISO 100 and manual exposure time.
