@@ -12,7 +12,7 @@
 
 
 ## What is it?
-**Light Printer** is a small project developed with love for long exposure photos. The program originally works on Raspberry Pi. It sends G-code commands directly to the Anet A8 3D-printer. The device doesn't print anything, but it is used as some kind of vertical plotter. There is a RGB LED on the front part of the printer's extruder, which is also controlled by Raspberry. The camera captures every blink of the light with a long exposure in a very dark room. Everything works closely together in an effort to produce a correct picture.
+**Light Printer** is a small project developed with love for long exposure photos. The program originally works on Raspberry Pi, which sends G-code commands directly to the Anet A8 3D-printer. The printer doesn't print anything, but it is used as some kind of vertical plotter. There is a RGB LED on the front part of the printer's extruder, which is also controlled by Raspberry. The camera captures every blink of the light with a long exposure in a very dark room. Everything works closely together in an effort to produce a correct picture.
 
 <p align="center">
     <img src="examples/preview.gif">
