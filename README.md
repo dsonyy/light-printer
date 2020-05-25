@@ -12,7 +12,7 @@
 
 
 ## What is it?
-**Light Printer** is a small project developed with love for long exposure photos. The program originally works on Raspberry Pi, which sends G-code commands directly to the Anet A8 3D-printer. The printer doesn't print anything, but it is used as some kind of vertical plotter. There is a RGB LED on the front part of the printer's extruder, which is also controlled by Raspberry. The camera captures every blink of the light with a long exposure in a very dark room. Everything works closely together in an effort to produce a correct picture.
+**Light Printer** is a small project developed with love for long exposure photos. The program originally works on Raspberry Pi, which sends G-code commands directly to the Anet A8 3D-printer. The printer doesn't print anything, but it is used as some kind of vertical plotter. There is a RGB LED on the front part of the extruder, which is also controlled by Raspberry. The camera captures every blink of light with a long exposure in a very dark room. Everything works closely together in an effort to produce a correct picture.
 
 <p align="center">
     <img src="examples/preview.gif">
@@ -46,20 +46,18 @@ Please note that this code is written only for **Anet A8 3D printer**. I haven't
 6. Follow the instructions to "draw" an image.
 
 ### Input images
-Input images should be located inside the `input` directory. They mustn't contain transparent pixels. To speed up printing empty pixels should be black `#000000` - they will be skipped.
+Input images should be located inside the `input` directory. They may not contain transparent pixels. To speed up printing empty pixels should be black `#000000`, so they will be skipped.
 
 ### Constants
 If you have a look inside `lightprinter.py` there are some constants which are suitable for my setup:
 
-- `LIGHT_TIME` - The time of a single pixel lighting **[sec]**
-- `Z_SLEEP_PER_MM` - The constant used to calculate the time from sending vertical move command to turning on the LED* **[sec/mm]**
-- `X_SLEEP_PER_MM` - The constant used to calculate the time from sending horizontal move command to turning on the LED* **[sec/mm]**
-- `Z_STEP` - Vertical step size **[cm]**
-- `X_STEP` - Horizontal step size **[cm]**
+- `LIGHT_TIME` - Time of a single pixel lighting **[sec]**
+- `Z_SLEEP_PER_MM` - Used to calculate the time from sending vertical move command to turning on the LED* **[sec/mm]**
+- `X_SLEEP_PER_MM` - Used to calculate the time from sending horizontal move command to turning on the LED* **[sec/mm]**
+- `Z_STEP` - Vertical step size **[mm]**
+- `X_STEP` - Horizontal step size **[mm]**
 
-- `PIN_RED` - GPIO pin number for red light control.
-- `PIN_GREEN` - GPIO pin number for green light control.
-- `PIN_BLUE` - GPIO pin number for blue light control.
+- `PIN_RED`, `PIN_GREEN`, `PIN_BLUE` - GPIO pins for LEDs.
 
 **&ast;** If the program sends move command to the printer, it takes some time to physically move the extruder. So that, we need to wait a bit until the extruder is in the right place. The final delay time equals to `X_STEP * X_SLEEP_PER_MM` for horizontal movement and `Z_STEP * Z_SLEEP_PER_MM` for vertical.
 
